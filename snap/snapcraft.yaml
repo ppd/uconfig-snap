@@ -2,19 +2,18 @@ name: uconfig
 base: core18 
 icon: desktop/uConfig.png
 adopt-info: uconfig
-summary: Datasheet pinout extractor from PDF and library Stylizer for KiCAD
+summary: Datasheet pinout extractor from PDF and library Stylizer for KiCad
 description: |
-  Extract pinout from PDF datasheet and create KiCAD schematics.
-  Directly save KiCAD library files. Work better with huge number of pins.
+  Extract pinout from PDF datasheet and create KiCad schematics.
+  Directly save KiCad library files. Work better with huge number of pins.
 
-grade: stable
 confinement: strict
 
 apps:
   uconfig-gui:
     command: desktop-launch uconfig_gui
     desktop: uConfig.desktop
-    plugs: &plugs [x11, unity7, wayland, desktop, home, removable-media, network]
+    plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, removable-media, network]
   uconfig:
     command: desktop-launch uconfig
     plugs: *plugs
@@ -53,7 +52,10 @@ parts:
     source-subdir: src
     override-pull: |
       snapcraftctl pull
-      snapcraftctl set-version "$(git describe)"
+      version="$(git describe --always | sed -e 's/-/+git/;y/-/./')"
+      [ -n "$(echo $version | grep "+git")" ] && grade=devel || grade=stable
+      snapcraftctl set-version "$version"
+      snapcraftctl set-grade "$grade"
     override-build: |
       snapcraftctl build
       cp -r bin "$SNAPCRAFT_PART_INSTALL/"
