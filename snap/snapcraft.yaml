@@ -1,0 +1,92 @@
+name: uconfig
+base: core18 
+icon: desktop/uConfig.png
+adopt-info: uconfig
+summary: Datasheet pinout extractor from PDF and library Stylizer for KiCAD
+description: |
+  Extract pinout from PDF datasheet and create KiCAD schematics.
+  Directly save KiCAD library files. Work better with huge number of pins.
+
+grade: stable
+confinement: strict
+
+apps:
+  uconfig-gui:
+    command: desktop-launch uconfig_gui
+    desktop: uConfig.desktop
+    plugs: &plugs [x11, unity7, wayland, desktop, home, removable-media, network]
+  uconfig:
+    command: desktop-launch uconfig
+    plugs: *plugs
+parts:
+  desktop:
+    plugin: dump
+    source: desktop
+  desktop-qt5:
+    build-packages:
+    - build-essential
+    - qtbase5-dev
+    - dpkg-dev
+    make-parameters:
+    - FLAVOR=qt5
+    plugin: make
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: qt
+    stage-packages:
+    - libxkbcommon0
+    - ttf-ubuntu-font-family
+    - dmz-cursor-theme
+    - light-themes
+    - adwaita-icon-theme
+    - gnome-themes-standard
+    - shared-mime-info
+    - libqt5gui5
+    - libgdk-pixbuf2.0-0
+    - libqt5svg5
+    - try: [appmenu-qt5]
+    - locales-all
+    - xdg-user-dirs
+    - fcitx-frontend-qt5
+  uconfig:
+    plugin: qmake
+    source: https://github.com/Robotips/uConfig.git
+    source-subdir: src
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version "$(git describe)"
+    override-build: |
+      snapcraftctl build
+      cp -r bin "$SNAPCRAFT_PART_INSTALL/"
+    build-packages:
+      - g++
+      - qt5-default 
+      - qttools5-dev-tools
+      - libpoppler-qt5-dev
+    stage-packages:
+      - libgl1
+      - libglx0
+      - libglvnd0
+      - libqt5core5a
+      - libqt5gui5
+      - libqt5printsupport5
+      - libqt5test5
+      - libqt5widgets5
+      - libx11-6
+      - libxau6
+      - libxdmcp6
+      - libdouble-conversion1
+      - libfreetype6
+      - libgraphite2-3
+      - libharfbuzz0b
+      - libicu60
+      - libpng16-16
+      - libxcb1
+      - libqt5xml5
+      - liblcms2-2
+      - libnspr4
+      - libnss3
+      - libpoppler-qt5-1
+      - libpoppler73
+
+
+

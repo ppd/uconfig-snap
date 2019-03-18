@@ -1,0 +1,9 @@
+[Desktop Entry]
+Terminal=false
+Icon=${SNAP}/uConfig.png
+Type=Application
+Categories=Development;Electronics;
+Exec=uconfig_gui %f
+Name=uConfig
+GenericName=Datasheet pinout extractor
+X-Desktop-File-Install-Version=0.22                                     
