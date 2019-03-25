@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# FIXME: Remove this when https://github.com/ubuntu/snapcraft-desktop-helpers/pull/181 is merged
+export QT_QPA_PLATFORMTHEME=gtk3
+
+exec "${@}"

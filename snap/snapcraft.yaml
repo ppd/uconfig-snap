@@ -9,11 +9,32 @@ description: |
 
 confinement: strict
 
+plugs:
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/share/themes
+    default-provider: gtk-common-themes:gtk-3-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/share/icons
+    default-provider: gtk-common-themes:icon-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/share/sounds
+    default-provider: gtk-common-themes:sounds-themes
+
 apps:
   uconfig-gui:
-    command: desktop-launch uconfig_gui
+    adapter: full
+    command: bin/uconfig_gui
+    command-chain:
+      - bin/desktop-launch 
+      - uconfig-wrapper 
     desktop: uConfig.desktop
-    plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, removable-media, network]
+    plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, removable-media, network, gsettings]
+    environment:
+      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/etc/glvnd/egl_vendor.d:$SNAP/usr/share/glvnd/egl_vendor.d
+      QT_QPA_PLATFORMTHEME: gtk3 # set default theme to gtk to integrate with system theme (GTK3)
   uconfig:
     command: desktop-launch uconfig
     plugs: *plugs
@@ -21,6 +42,9 @@ parts:
   desktop:
     plugin: dump
     source: desktop
+  wrapper:
+    plugin: dump
+    source: launchers
   desktop-qt5:
     build-packages:
     - build-essential
@@ -89,6 +113,9 @@ parts:
       - libnss3
       - libpoppler-qt5-1
       - libpoppler73
+      - qtwayland5
+      - qt5-style-plugins
+      - qt5-gtk-platformtheme
 
 
 
