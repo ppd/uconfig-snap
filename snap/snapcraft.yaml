@@ -12,15 +12,15 @@ confinement: strict
 plugs:
   gtk-3-themes:
     interface: content
-    target: $SNAP/share/themes
+    target: $SNAP/data-dir/themes
     default-provider: gtk-common-themes:gtk-3-themes
   icon-themes:
     interface: content
-    target: $SNAP/share/icons
+    target: $SNAP/data-dir/icons
     default-provider: gtk-common-themes:icon-themes
   sound-themes:
     interface: content
-    target: $SNAP/share/sounds
+    target: $SNAP/data-dir/sounds
     default-provider: gtk-common-themes:sounds-themes
 
 apps:
@@ -29,12 +29,13 @@ apps:
     command: bin/uconfig_gui
     command-chain:
       - bin/desktop-launch 
-      - uconfig-wrapper 
+      - bin/gtk3-env-launch
     desktop: uConfig.desktop
-    plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, removable-media, network, gsettings]
+    plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, desktop-legacy, removable-media, network, gsettings]
     environment:
       __EGL_VENDOR_LIBRARY_DIRS: $SNAP/etc/glvnd/egl_vendor.d:$SNAP/usr/share/glvnd/egl_vendor.d
       QT_QPA_PLATFORMTHEME: gtk3 # set default theme to gtk to integrate with system theme (GTK3)
+      DISABLE_WAYLAND: 1
   uconfig:
     command: desktop-launch uconfig
     plugs: *plugs
@@ -45,6 +46,8 @@ parts:
   wrapper:
     plugin: dump
     source: launchers
+    organize:
+      '*': bin/
   desktop-qt5:
     build-packages:
     - build-essential
@@ -89,32 +92,11 @@ parts:
       - qttools5-dev-tools
       - libpoppler-qt5-dev
     stage-packages:
-      - libgl1
-      - libglx0
-      - libglvnd0
-      - libqt5core5a
-      - libqt5gui5
       - libqt5printsupport5
       - libqt5test5
-      - libqt5widgets5
-      - libx11-6
-      - libxau6
-      - libxdmcp6
-      - libdouble-conversion1
-      - libfreetype6
-      - libgraphite2-3
-      - libharfbuzz0b
-      - libicu60
-      - libpng16-16
-      - libxcb1
-      - libqt5xml5
-      - liblcms2-2
-      - libnspr4
-      - libnss3
       - libpoppler-qt5-1
       - libpoppler73
       - qtwayland5
-      - qt5-style-plugins
       - qt5-gtk-platformtheme
 
 
