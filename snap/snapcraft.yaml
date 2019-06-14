@@ -76,7 +76,7 @@ parts:
     source-subdir: src
     override-pull: |
       snapcraftctl pull
-      version="$(git describe --always | sed -e 's/-/+git/;y/-/./')"
+      version="$(git describe --always | sed -e 's/-/+git/;y/-/./;s/v//')"
       [ -n "$(echo $version | grep "+git")" ] && grade=devel || grade=stable
       snapcraftctl set-version "$version"
       snapcraftctl set-grade "$grade"
