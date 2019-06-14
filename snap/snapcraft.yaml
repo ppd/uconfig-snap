@@ -26,14 +26,11 @@ plugs:
 apps:
   uconfig-gui:
     adapter: full
-    command: bin/uconfig_gui
-    command-chain:
-      - bin/desktop-launch 
-      - bin/gtk3-env-launch
+    command: desktop-launch bin/uconfig_gui
     desktop: uConfig.desktop
     plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, desktop-legacy, removable-media, network, gsettings]
     environment:
-      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/etc/glvnd/egl_vendor.d:$SNAP/usr/share/glvnd/egl_vendor.d
+      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/usr/share/glvnd/egl_vendor.d
       QT_QPA_PLATFORMTHEME: gtk3 # set default theme to gtk to integrate with system theme (GTK3)
       DISABLE_WAYLAND: 1
   uconfig:
