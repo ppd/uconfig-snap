@@ -40,11 +40,6 @@ parts:
   desktop:
     plugin: dump
     source: desktop
-  wrapper:
-    plugin: dump
-    source: launchers
-    organize:
-      '*': bin/
   desktop-qt5:
     build-packages:
     - build-essential
