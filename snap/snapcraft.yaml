@@ -25,7 +25,7 @@ plugs:
 
 apps:
   uconfig-gui:
-    command: desktop-launch bin/uconfig_gui
+    command: desktop-launch $SNAP/bin/uconfig_gui
     desktop: uConfig.desktop
     plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, desktop-legacy, removable-media, network, gsettings]
     environment:
@@ -33,7 +33,7 @@ apps:
       QT_QPA_PLATFORMTHEME: gtk3 # set default theme to gtk to integrate with system theme (GTK3)
       DISABLE_WAYLAND: 1
   uconfig:
-    command: desktop-launch uconfig
+    command: desktop-launch $SNAP/bin/uconfig
     plugs: *plugs
 parts:
   desktop:
