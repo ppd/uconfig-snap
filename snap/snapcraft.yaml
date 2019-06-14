@@ -25,7 +25,6 @@ plugs:
 
 apps:
   uconfig-gui:
-    adapter: full
     command: desktop-launch bin/uconfig_gui
     desktop: uConfig.desktop
     plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, desktop-legacy, removable-media, network, gsettings]
