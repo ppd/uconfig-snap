@@ -2,6 +2,7 @@ name: uconfig
 base: core18 
 icon: desktop/uConfig.png
 adopt-info: uconfig
+grade: stable
 summary: Datasheet pinout extractor from PDF and library Stylizer for KiCad
 description: |
   Extract pinout from PDF datasheet and create KiCad schematics.
@@ -9,86 +10,75 @@ description: |
 
 confinement: strict
 
-plugs:
-  gtk-3-themes:
-    interface: content
-    target: $SNAP/data-dir/themes
-    default-provider: gtk-common-themes:gtk-3-themes
-  icon-themes:
-    interface: content
-    target: $SNAP/data-dir/icons
-    default-provider: gtk-common-themes:icon-themes
-  sound-themes:
-    interface: content
-    target: $SNAP/data-dir/sounds
-    default-provider: gtk-common-themes:sounds-themes
-
 apps:
   uconfig-gui:
-    command: desktop-launch $SNAP/bin/uconfig_gui
+    command: bin/uconfig_gui
     desktop: uConfig.desktop
-    plugs: &plugs [opengl, x11, unity7, wayland, desktop, home, desktop-legacy, removable-media, network, gsettings]
+    extensions: [kde-neon]
+    plugs: &plugs [opengl, home, removable-media, network]
     environment:
-      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/usr/share/glvnd/egl_vendor.d
-      QT_QPA_PLATFORMTHEME: gtk3 # set default theme to gtk to integrate with system theme (GTK3)
-      DISABLE_WAYLAND: 1
+      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/kf5/usr/share/glvnd/egl_vendor.d:$SNAP/usr/share/glvnd/egl_vendor.d
+
   uconfig:
-    command: desktop-launch $SNAP/bin/uconfig
+    command: bin/uconfig
+    extensions: [kde-neon]
     plugs: *plugs
+
 parts:
   desktop:
     plugin: dump
     source: desktop
-  desktop-qt5:
-    build-packages:
-    - build-essential
-    - qtbase5-dev
-    - dpkg-dev
-    make-parameters:
-    - FLAVOR=qt5
-    plugin: make
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-subdir: qt
-    stage-packages:
-    - libxkbcommon0
-    - ttf-ubuntu-font-family
-    - dmz-cursor-theme
-    - light-themes
-    - adwaita-icon-theme
-    - gnome-themes-standard
-    - shared-mime-info
-    - libqt5gui5
-    - libgdk-pixbuf2.0-0
-    - libqt5svg5
-    - try: [appmenu-qt5]
-    - locales-all
-    - xdg-user-dirs
-    - fcitx-frontend-qt5
-  uconfig:
-    plugin: qmake
-    source: https://github.com/Robotips/uConfig.git
-    source-subdir: src
-    override-pull: |
-      snapcraftctl pull
-      version="$(git describe --always | sed -e 's/-/+git/;y/-/./;s/v//')"
-      [ -n "$(echo $version | grep "+git")" ] && grade=devel || grade=stable
-      snapcraftctl set-version "$version"
-      snapcraftctl set-grade "$grade"
-    override-build: |
-      snapcraftctl build
-      cp -r bin "$SNAPCRAFT_PART_INSTALL/"
+
+  kde-sdk-setup:
+    plugin: nil
+    build-snaps:
+      - kde-frameworks-5-core18-sdk
     build-packages:
       - g++
-      - qt5-default 
-      - qttools5-dev-tools
-      - libpoppler-qt5-dev
-    stage-packages:
-      - libqt5printsupport5
-      - libqt5test5
-      - libpoppler-qt5-1
-      - libpoppler73
-      - qtwayland5
-      - qt5-gtk-platformtheme
+      - mesa-common-dev
+      - libglvnd-dev
+      - rsync
+    override-build: |
+      rsync -a --ignore-existing /snap/kde-frameworks-5-core18-sdk/current/ /
 
+  poppler:
+    after: [kde-sdk-setup]
+    plugin: cmake
+    source: https://gitlab.freedesktop.org/poppler/poppler.git
+    source-tag: poppler-0.88.0
+    build-packages:
+      - libfreetype6-dev
+      - libfontconfig1-dev
+      - libopenjp2-7-dev
+    configflags:
+      - -DCMAKE_BUILD_TYPE=release
+    
+  uconfig:
+    after: [kde-sdk-setup, poppler]
+    plugin: nil
+    source: https://github.com/Robotips/uConfig.git
+    build-packages:
+      - git
+    override-pull: |
+      snapcraftctl pull
+      version="$(git describe --always)"
+      snapcraftctl set-version "$version"
+    override-build: |
+      qmake "$SNAPCRAFT_PART_SRC/src/uConfig.pro" \
+        INCLUDEPATH+="$SNAPCRAFT_STAGE/include" \
+        LIBS+="-L$SNAPCRAFT_STAGE/lib"
+      make -j$(nproc)
+      make install INSTALL_ROOT="$SNAPCRAFT_PART_INSTALL"
+      cp -r "$SNAPCRAFT_PART_SRC/bin" "$SNAPCRAFT_PART_INSTALL/"
 
-
+  cleanup:
+    after: [uconfig]
+    plugin: nil
+    build-snaps: [core18, kde-frameworks-5-core18]
+    override-prime: |
+      # Remove all files from snap that are already included in the base snap or in
+      # any connected content snaps
+      set -eux
+      for snap in "core18" "kde-frameworks-5-core18"; do  # List all content-snaps and base snaps you're using here
+        cd "/snap/$snap/current" && find . -type f,l -exec rm -f "$SNAPCRAFT_PRIME/{}" \;
+      done
