@@ -10,6 +10,9 @@ description: |
 
 confinement: strict
 
+architectures:
+  - build-on: amd64
+
 apps:
   uconfig-gui:
     command: bin/uconfig_gui
